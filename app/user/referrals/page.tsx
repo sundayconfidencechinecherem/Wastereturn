@@ -38,7 +38,7 @@ import { useEffect, useRef } from 'react';
 
 // Mock referrals data
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://wastereturn-e0wlnge61-confideces-projects.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://wastereturn.vercel.app/';
 
 
 const mockReferrals = {
