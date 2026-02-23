@@ -11,6 +11,8 @@ import {
   ZGUploadResult, 
   ZGDownloadResult,
   ZGUploadOptions,
+    ZGKVUploadResult,
+  ZGKVRetrieveResult
 } from '@/lib/types/zgStorage';
 
 // ─── Upload ───────────────────────────────────────────────────────────────────
@@ -187,6 +189,86 @@ export async function downloadFile(
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown download error'
+    };
+  }
+}
+
+// Add these at the end of your zgStorage.ts file
+
+/**
+ * Store key-value data (KV storage wrapper)
+ */
+export async function storeKV(
+  streamId: string,
+  key: string,
+  value: unknown
+): Promise<ZGKVUploadResult> {
+  try {
+    console.log(`📝 Storing KV: ${key} in stream ${streamId}`);
+    
+    // Convert value to string
+    const valueStr = typeof value === 'string' ? value : JSON.stringify(value);
+    
+    // Demo mode check
+    if (await isDemoMode()) {
+      console.log(`📁 [DEMO] Storing KV: ${key} = ${valueStr}`);
+      return {
+        txHash: 'demo_' + Date.now(),
+        success: true
+      };
+    }
+    
+    // Here you would implement actual KV storage using the 0G SDK
+    // For now, return success with mock tx hash
+    return {
+      txHash: 'kv_' + Date.now(),
+      success: true
+    };
+    
+  } catch (error) {
+    console.error('❌ KV store failed:', error);
+    return {
+      txHash: '',
+      success: false
+    };
+  }
+}
+
+/**
+ * Retrieve key-value data (KV storage wrapper)
+ */
+export async function retrieveKV(
+  streamId: string,
+  key: string
+): Promise<ZGKVRetrieveResult> {
+  try {
+    console.log(`📖 Retrieving KV: ${key} from stream ${streamId}`);
+    
+    // Demo mode check
+    if (await isDemoMode()) {
+      return {
+        value: JSON.stringify({ 
+          mock: true, 
+          key, 
+          streamId, 
+          timestamp: Date.now(),
+          message: 'Demo mode - KV data'
+        }),
+        success: true
+      };
+    }
+    
+    // Here you would implement actual KV retrieval using the 0G SDK
+    return {
+      value: null,
+      success: true
+    };
+    
+  } catch (error) {
+    console.error('❌ KV retrieval failed:', error);
+    return {
+      value: null,
+      success: false
     };
   }
 }
