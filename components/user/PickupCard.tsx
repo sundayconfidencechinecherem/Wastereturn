@@ -1,122 +1,227 @@
-// components/user/PickupCard.tsx
-import { Card, CardContent } from '@/components/ui/Card';
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { 
+  MapPin, 
+  Clock, 
+  Truck, 
+  Phone, 
+  Navigation, 
+  ChevronRight,
+  Calendar,
+  Package,
+  Award
+} from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { PickupRequest } from '@/lib/types';
-import { formatDate, formatTime } from '@/lib/utils';
-import { 
-  CalendarIcon, 
-  ClockIcon, 
-  MapPinIcon, 
-  TruckIcon,
-  CheckCircleIcon,
-  XCircleIcon
-} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/Card';
+import type { PickupRequest } from '@/lib/types';
 
 interface PickupCardProps {
   pickup: PickupRequest;
-  onReschedule?: () => void;
-  onCancel?: () => void;
+  showDriver?: boolean;
   onTrack?: () => void;
 }
 
-export function PickupCard({ pickup, onReschedule, onCancel, onTrack }: PickupCardProps) {
-  const statusColors = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    assigned: 'bg-blue-100 text-blue-800',
-    en_route: 'bg-purple-100 text-purple-800',
-    arrived: 'bg-green-100 text-green-800',
-    completed: 'bg-gray-100 text-gray-800',
-    cancelled: 'bg-red-100 text-red-800',
-    rescheduled: 'bg-orange-100 text-orange-800',
+export function PickupCard({ pickup, showDriver = true, onTrack }: PickupCardProps) {
+  const [eta, setEta] = useState<string>(pickup.driver?.eta || 'Calculating...');
+
+  useEffect(() => {
+    if (!pickup.driver || pickup.status !== 'assigned') return;
+
+    const interval = setInterval(() => {
+      const minutes = Math.floor(Math.random() * 20) + 5;
+      setEta(`${minutes} mins`);
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [pickup.driver, pickup.status]);
+
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case 'assigned': return 'bg-blue-100 text-blue-700';
+      case 'en_route': return 'bg-yellow-100 text-yellow-700';
+      case 'arrived': return 'bg-green-100 text-green-700';
+      case 'completed': return 'bg-green-100 text-green-700';
+      case 'cancelled': return 'bg-red-100 text-red-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
   };
 
-  const statusLabels = {
-    pending: 'Pending',
-    assigned: 'Driver Assigned',
-    en_route: 'En Route',
-    arrived: 'Arrived',
-    completed: 'Completed',
-    cancelled: 'Cancelled',
-    rescheduled: 'Rescheduled',
+  const getStatusIcon = (status: string) => {
+    switch(status) {
+      case 'assigned': return '🚚';
+      case 'en_route': return '🚗';
+      case 'arrived': return '📍';
+      case 'completed': return '✅';
+      case 'cancelled': return '❌';
+      default: return '⏳';
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  const getTimeWindowLabel = (window: string) => {
+    switch(window) {
+      case 'morning': return '8am - 11am';
+      case 'afternoon': return '2pm - 5pm';
+      case 'evening': return '5pm - 8pm';
+      default: return window;
+    }
+  };
+
+  const totalEstimatedWeight = pickup.wasteTypes.reduce((sum, item) => sum + (item.estimatedWeight || 0), 0);
+
+  const handlePhoneClick = (phone: string) => {
+    window.location.href = `tel:${phone}`;
   };
 
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <TruckIcon className="w-5 h-5 text-gray-400" />
-              <span className="font-semibold">Pickup #{pickup.id.slice(-6)}</span>
-            </div>
-            <Badge variant="default" className={statusColors[pickup.status]}>
-              {statusLabels[pickup.status]}
+    <Card className="hover:shadow-lg transition-shadow overflow-hidden">
+      <CardContent className="p-0">
+        {/* Status Bar */}
+        <div className={`px-4 py-2 flex items-center justify-between ${getStatusColor(pickup.status)}`}>
+          <div className="flex items-center gap-2">
+            <span>{getStatusIcon(pickup.status)}</span>
+            <span className="font-medium capitalize">{pickup.status.replace('_', ' ')}</span>
+          </div>
+          {pickup.status === 'assigned' && pickup.driverId && (
+            <Badge variant="warning" className="animate-pulse">
+              Driver assigned
             </Badge>
-          </div>
-          <div className="text-right">
-            <div className="text-sm font-medium">{formatDate(pickup.scheduledDate)}</div>
-            <div className="text-xs text-gray-500 capitalize">{pickup.timeWindow}</div>
-          </div>
+          )}
         </div>
 
-        <div className="space-y-3 mb-4">
-          <div className="flex items-center gap-2 text-sm">
-            <CalendarIcon className="w-4 h-4 text-gray-400" />
-            <span>Scheduled for {formatDate(pickup.scheduledDate)}</span>
+        {/* Main Content */}
+        <div className="p-4">
+          {/* Date and Time */}
+          <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
+            <div className="flex items-center gap-1">
+              <Calendar className="w-4 h-4" />
+              {formatDate(pickup.scheduledDate)}
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              {getTimeWindowLabel(pickup.timeWindow)}
+            </div>
           </div>
-          
-          {pickup.estimatedArrival && (
-            <div className="flex items-center gap-2 text-sm">
-              <ClockIcon className="w-4 h-4 text-gray-400" />
-              <span>Estimated arrival: {formatTime(pickup.estimatedArrival)}</span>
+
+          {/* Address */}
+          <div className="mb-4 flex items-start gap-2">
+            <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-gray-600">{pickup.address}</p>
+          </div>
+
+          {/* Waste Types */}
+          <div className="mb-4">
+            <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
+              <Package className="w-4 h-4" />
+              Items ({totalEstimatedWeight} kg total):
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {pickup.wasteTypes.map((item, i) => (
+                <Badge key={i} variant="default" className="bg-gray-100 text-gray-700">
+                  {item.wasteTypeId} {item.estimatedWeight && `(${item.estimatedWeight}kg)`}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {/* Driver Information */}
+          {showDriver && pickup.driver && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <h4 className="font-medium mb-3 flex items-center gap-2">
+                <Truck className="w-4 h-4 text-[#1976D2]" />
+                Driver Details
+              </h4>
+              
+              <div className="bg-blue-50 rounded-lg p-3">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-[#1976D2] rounded-full flex items-center justify-center text-white font-bold">
+                    {pickup.driver.name.split(' ').map((n: string) => n[0]).join('')}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">{pickup.driver.name}</p>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Phone className="w-3 h-3" />
+                      <button
+                        onClick={() => handlePhoneClick(pickup.driver!.phone)}
+                        className="hover:text-[#1976D2] focus:outline-none"
+                      >
+                        {pickup.driver.phone}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Estimated arrival:</span>
+                    <span className="font-bold text-[#1976D2]">{eta}</span>
+                  </div>
+                  
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-green-500 rounded-full h-2 transition-all duration-500"
+                      style={{ width: pickup.status === 'en_route' ? '75%' : '40%' }}
+                    />
+                  </div>
+
+                  <div className="flex gap-2 mt-3">
+                    {onTrack && (
+                      <Button 
+                        variant="primary" 
+                        size="sm" 
+                        className="flex-1 gap-2"
+                        onClick={onTrack}
+                      >
+                        <Navigation className="w-4 h-4" />
+                        Track Live
+                      </Button>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1 gap-2"
+                      onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(pickup.address)}`, '_blank')}
+                    >
+                      <MapPin className="w-4 h-4" />
+                      View Route
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
-          <div className="flex items-start gap-2 text-sm">
-            <MapPinIcon className="w-4 h-4 text-gray-400 mt-0.5" />
-            <span className="text-gray-600">Your location</span>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-100 pt-4">
-          <p className="text-sm font-medium mb-2">Waste types:</p>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {pickup.wasteTypes.map((waste, i) => (
-              <Badge key={i} variant="default" className="bg-gray-100">
-                {waste.estimatedWeight}kg
-              </Badge>
-            ))}
-          </div>
-
-          <div className="flex gap-2">
-            {pickup.status === 'pending' && (
-              <>
-                <Button variant="outline" size="sm" onClick={onReschedule}>
-                  Reschedule
-                </Button>
-                <Button variant="danger" size="sm" onClick={onCancel}>
-                  Cancel
-                </Button>
-              </>
-            )}
-            {(pickup.status === 'assigned' || pickup.status === 'en_route') && (
-              <Button variant="primary" size="sm" onClick={onTrack} className="flex-1">
-                Track Driver
-              </Button>
-            )}
-            {pickup.status === 'completed' && (
-              <div className="flex items-center gap-2 text-sm text-green-600">
-                <CheckCircleIcon className="w-5 h-5" />
-                <span>Completed successfully</span>
+          {/* Points Info */}
+          {pickup.status === 'completed' && pickup.pointsEarned && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 flex items-center gap-1">
+                  <Award className="w-4 h-4 text-yellow-500" />
+                  Points earned:
+                </span>
+                <span className="font-bold text-green-600">+{pickup.pointsEarned} pts</span>
               </div>
-            )}
-            {pickup.status === 'cancelled' && (
-              <div className="flex items-center gap-2 text-sm text-red-600">
-                <XCircleIcon className="w-5 h-5" />
-                <span>Cancelled</span>
-              </div>
-            )}
+            </div>
+          )}
+
+          {/* View Details Link */}
+          <div className="mt-4 text-right">
+            <Link 
+              href={`/user/pickups/${pickup.id}`}
+              className="text-sm text-[#1976D2] hover:underline inline-flex items-center gap-1"
+            >
+              View Details <ChevronRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </CardContent>

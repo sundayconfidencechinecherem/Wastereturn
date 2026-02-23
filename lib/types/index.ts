@@ -2,6 +2,36 @@
 
 export type UserRole = 'user' | 'driver' | 'admin' | 'estate_manager';
 
+export interface UserStats {
+  totalRecycled: number;
+  treesSaved: number;
+  waterSaved: number;
+  co2Prevented: number;
+  pickupsCompleted: number;
+  thisMonth: number;
+  sortingAccuracy: number;
+}
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  progress: number;
+  target: number;
+  completed: boolean;
+  unlockedAt?: Date;
+}
+
+export interface Activity {
+  id: string;
+  type: 'pickup' | 'bonus' | 'reward' | 'referral' | 'dropoff';
+  description: string;
+  points: number;
+  date: Date;
+  weight?: string;
+}
+
 export interface User {
   id: string;
   phoneNumber: string;
@@ -10,6 +40,12 @@ export interface User {
   role: UserRole;
   householdId?: string;
   points: number;
+  level: string;
+  streak: number;
+  rank: number;
+  stats: UserStats;
+  achievements: Achievement[];
+  zgTxHash?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -59,21 +95,24 @@ export interface WasteType {
   requiresSpecialHandling: boolean;
 }
 
-export interface WasteTransaction {
+export interface Driver {
   id: string;
-  userId: string;
-  driverId?: string;
-  dropoffCenterId?: string;
-  wasteTypeId: string;
-  weight: number;
-  basePoints: number;
-  sortingQuality: SortingQuality;
-  qualityMultiplier: number;
-  cleanlinessFactor: number;
-  loyaltyBonus: number;
-  totalPoints: number;
-  photoEvidence?: string[];
-  notes?: string;
+  name: string;
+  phone: string;
+  email?: string;
+  vehicleType: string;
+  licensePlate: string;
+  status: 'online' | 'offline' | 'on_route' | 'on_pickup';
+  currentLocation?: {
+    lat: number;
+    lng: number;
+  };
+  eta?: string;
+  rating: number;
+  totalPickups: number;
+  todayPickups?: number;
+  todayEarnings?: number;
+  zgTxHash?: string;
   createdAt: Date;
 }
 
@@ -83,25 +122,33 @@ export type PickupStatus =
 
 export type PickupTimeWindow = 'morning' | 'afternoon' | 'evening';
 
+// In lib/types/index.ts, around line 120-130
 export interface PickupRequest {
   id: string;
   userId: string;
   householdId: string;
+  address: string;  // Make sure this exists!
   scheduledDate: Date;
   timeWindow: PickupTimeWindow;
+  status: PickupStatus;
   wasteTypes: Array<{
     wasteTypeId: string;
     estimatedWeight: number;
+    actualWeight?: number;
   }>;
-  status: PickupStatus;
+  totalWeight?: number;
+  pointsEarned?: number;
   driverId?: string;
+  driver?: Driver;
   estimatedArrival?: Date;
   actualArrival?: Date;
   completionTime?: Date;
   notes?: string;
+  zgTxHash?: string;
   createdAt: Date;
   updatedAt: Date;
 }
+
 
 export interface PointsLedger {
   id: string;

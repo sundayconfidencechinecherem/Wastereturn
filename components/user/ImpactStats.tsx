@@ -1,62 +1,75 @@
-// components/user/ImpactStats.tsx
+'use client';
+
+import { Leaf, Droplet, TreesIcon as Tree, Wind } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
-import { Leaf, TreesIcon as TreePine, Droplet, Cloud } from 'lucide-react';
 
 interface ImpactStatsProps {
-  totalRecycled: number; // in kg
+  totalRecycled: number;
   treesSaved: number;
-  waterSaved: number; // in liters
-  co2Prevented: number; // in kg
+  waterSaved: number;
+  co2Prevented: number;
+  className?: string;
 }
 
-export function ImpactStats({ totalRecycled, treesSaved, waterSaved, co2Prevented }: ImpactStatsProps) {
+export function ImpactStats({ 
+  totalRecycled, 
+  treesSaved, 
+  waterSaved, 
+  co2Prevented,
+  className = '' 
+}: ImpactStatsProps) {
+  
   const stats = [
     {
-      label: 'Recycled',
-      value: `${totalRecycled} kg`,
+      label: 'Total Recycled',
+      value: `${totalRecycled.toFixed(1)} kg`,
       icon: Leaf,
-      color: 'text-green-600',
-      bg: 'bg-green-100',
+      color: 'bg-green-100 text-green-600',
+      bg: 'bg-green-50'
     },
     {
       label: 'Trees Saved',
       value: treesSaved,
-      icon: TreePine,
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-100',
+      icon: Tree,
+      color: 'bg-emerald-100 text-emerald-600',
+      bg: 'bg-emerald-50'
     },
     {
       label: 'Water Saved',
-      value: `${waterSaved}L`,
+      value: `${waterSaved.toLocaleString()} L`,
       icon: Droplet,
-      color: 'text-blue-600',
-      bg: 'bg-blue-100',
+      color: 'bg-blue-100 text-blue-600',
+      bg: 'bg-blue-50'
     },
     {
       label: 'CO₂ Prevented',
       value: `${co2Prevented} kg`,
-      icon: Cloud,
-      color: 'text-gray-600',
-      bg: 'bg-gray-100',
-    },
+      icon: Wind,
+      color: 'bg-purple-100 text-purple-600',
+      bg: 'bg-purple-50'
+    }
   ];
 
   return (
-    <Card>
-      <CardContent className="p-6">
-        <h3 className="font-semibold mb-4">Your Environmental Impact</h3>
-        <div className="grid grid-cols-2 gap-4">
-          {stats.map((stat, index) => (
-            <div key={index} className="text-center">
-              <div className={`${stat.bg} w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2`}>
-                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+    <div className={`grid grid-cols-2 lg:grid-cols-4 gap-4 ${className}`}>
+      {stats.map((stat, index) => {
+        const Icon = stat.icon;
+        return (
+          <Card key={index} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-full ${stat.color} flex items-center justify-center`}>
+                  <Icon className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">{stat.label}</p>
+                  <p className="text-xl font-bold">{stat.value}</p>
+                </div>
               </div>
-              <p className="text-lg font-bold">{stat.value}</p>
-              <p className="text-xs text-gray-600">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
   );
 }

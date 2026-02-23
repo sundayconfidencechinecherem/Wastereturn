@@ -204,11 +204,10 @@ export default function UserDashboardPage() {
                     View all <ChevronRight className="w-4 h-4" />
                   </Link>
                 </div>
-                <Link href={`/user/pickups/${mockUser.nextPickup.id}`} className="block">
-                  <div className="transform transition-transform hover:scale-[1.01] active:scale-[0.99]">
-                    <PickupCard pickup={mockUser.nextPickup} />
-                  </div>
-                </Link>
+<div className="transform transition-transform hover:scale-[1.01] active:scale-[0.99]">
+  <PickupCard pickup={mockUser.nextPickup} />
+</div>
+                
               </div>
             )}
 

@@ -5,69 +5,7 @@
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-export interface User {
-  id: string;          // wallet address
-  name: string;
-  phone: string;
-  email?: string;
-  role: 'user' | 'driver' | 'admin';
-  points: number;
-  level: string;
-  streak: number;
-  rank: number;
-  stats: {
-    totalRecycled: number;
-    treesSaved: number;
-    waterSaved: number;
-    co2Prevented: number;
-    pickupsCompleted: number;
-    thisMonth: number;
-  };
-  achievements: Achievement[];
-  zgTxHash?: string;   // 0G storage hash for this user record
-  createdAt: string;
-}
-
-export interface Achievement {
-  id: string;
-  name: string;
-  icon: string;
-  progress: number;
-  target: number;
-  completed: boolean;
-}
-
-export interface PickupRequest {
-  id: string;
-  userId: string;
-  address: string;
-  scheduledDate: string;
-  timeWindow: 'morning' | 'afternoon' | 'evening';
-  status: 'pending' | 'assigned' | 'en_route' | 'completed' | 'cancelled';
-  wasteTypes: { wasteTypeId: string; estimatedWeight: number }[];
-  totalWeight?: number;
-  pointsEarned?: number;
-  driverId?: string;
-  driver?: { name: string; phone: string; eta?: string };
-  notes?: string;
-  zgTxHash?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Driver {
-  id: string;          // wallet address
-  name: string;
-  phone: string;
-  status: 'online' | 'offline' | 'on_pickup';
-  rating: number;
-  totalPickups: number;
-  todayPickups: number;
-  todayEarnings: number;
-  zgTxHash?: string;
-  createdAt: string;
-}
+import { User, Driver, PickupRequest, Achievement } from '@/lib/types';
 
 export interface AppStore {
   // Auth
